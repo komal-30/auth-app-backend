@@ -3,6 +3,7 @@ package com.project.auth.app.backend.entity;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -18,6 +19,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,11 +32,9 @@ import lombok.NoArgsConstructor;
 public class User {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.UUID)
 	@Column(name = "user_id")
-	private Long id;
-
-
+	private UUID id;
 
 	@Column(name = "user_email", unique = true, length = 300)
 	private String email;
@@ -50,6 +51,16 @@ public class User {
 
 	@LastModifiedDate
 	private Instant updatedAt;
+
+	@PrePersist
+	public void onCreate() {
+		this.createdAt = Instant.now();
+	}
+
+	@PreUpdate
+	public void onUpdat() {
+		this.updatedAt = Instant.now();
+	}
 
 	@Enumerated(EnumType.STRING)
 	private Provider provider = Provider.LOCAL;

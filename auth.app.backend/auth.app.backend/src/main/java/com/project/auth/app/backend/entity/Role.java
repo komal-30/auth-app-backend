@@ -1,5 +1,7 @@
 package com.project.auth.app.backend.entity;
 
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,9 +18,9 @@ import lombok.NoArgsConstructor;
 public class Role {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.UUID)
 	@Column(name = "role_id")
-	private Long id;
+	private UUID id;
 
 	private String name;
 }

@@ -1,19 +1,19 @@
 package com.project.auth.app.backend.service;
 
-import com.project.auth.app.backend.dto.UserDtoRecord;
+import com.project.auth.app.backend.dto.UserDto;
 
 public interface UserService {
 
-	UserDtoRecord createUser(UserDtoRecord userDto);
+	UserDto createUser(UserDto userDto);
 
-	UserDtoRecord getUserByEmail(String email);
+	UserDto getUserByEmail(String email);
 
-	UserDtoRecord updateUser(UserDtoRecord userDto);
+	UserDto updateUser(UserDto userDto, String userId);
 
-	UserDtoRecord getUserById(String userId);
-
-	Iterable<UserDtoRecord> getAllUsers();
+	Iterable<UserDto> getAllUsers();
 
 	void deleteUserById(String userId);
+
+	UserDto getUserById(String userId);
 
 }
