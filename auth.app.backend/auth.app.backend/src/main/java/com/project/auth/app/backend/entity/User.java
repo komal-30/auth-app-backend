@@ -1,12 +1,16 @@
 package com.project.auth.app.backend.entity;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,7 +33,7 @@ import lombok.NoArgsConstructor;
 @Entity(name = "user")
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class User  implements UserDetails{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
@@ -68,5 +72,17 @@ public class User {
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles = new HashSet<>();
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		// TODO Auto-generated method stub
+		return roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).toList();
+	}
+
+	@Override
+	public String getUsername() {
+		// TODO Auto-generated method stub
+		return this.email;
+	}
 
 }
