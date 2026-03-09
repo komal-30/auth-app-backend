@@ -23,8 +23,12 @@ import com.project.auth.app.backend.entity.RefreshToken;
 import com.project.auth.app.backend.entity.User;
 import com.project.auth.app.backend.repository.RefreshTokenRepository;
 import com.project.auth.app.backend.repository.UserRepository;
+import com.project.auth.app.backend.security.CookieService;
 import com.project.auth.app.backend.security.JwtService;
 import com.project.auth.app.backend.service.AuthService;
+
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -36,21 +40,24 @@ public class AuthController {
 	private final JwtService jwtService;
 	private final ModelMapper modelMapper;
 	private final RefreshTokenRepository refreshTokenRepository;
+	private final CookieService cookieService;
 
 	public AuthController(AuthService authService, AuthenticationManager authenticationManager,
 			UserRepository userRepository, JwtService jwtService, ModelMapper modelMapper,
-			RefreshTokenRepository refreshTokenRepository) {
+			RefreshTokenRepository refreshTokenRepository, CookieService cookieService) {
 		this.authService = authService;
 		this.authenticationManager = authenticationManager;
 		this.userRepository = userRepository;
 		this.jwtService = jwtService;
 		this.modelMapper = modelMapper;
 		this.refreshTokenRepository = refreshTokenRepository;
+		this.cookieService = cookieService;
 	}
 
 	// lOGIN - It Generates the JWT Token after validating use credentials
 	@PostMapping("/login")
-	public ResponseEntity<TokenResponseRecordDto> loginUser(@RequestBody LoginRequestRecordDto login) {
+	public ResponseEntity<TokenResponseRecordDto> loginUser(@RequestBody LoginRequestRecordDto login,
+			HttpServletResponse response) {
 
 		// Authenticate user
 		authenticateUser(login);
@@ -72,10 +79,15 @@ public class AuthController {
 		String accessToken = jwtService.generateAccessToken(user);
 		String refreshToken = jwtService.generateRefreshToken(user, refreshTokenObject.getJti());
 		// Response
-		TokenResponseRecordDto response = TokenResponseRecordDto.createTokenResponseRecordDto(accessToken, refreshToken,
-				jwtService.getAccessTtlSeconds(), "Bearer", modelMapper.map(user, UserDto.class));
 
-		return ResponseEntity.ok(response);
+		// Use cookie service
+		cookieService.attachRefreshCookie(response, refreshToken, (int) jwtService.getRefreshTtlSeconds());
+		cookieService.addNoStoreHeaders(response);
+
+		TokenResponseRecordDto tokenResponseRecordDto = TokenResponseRecordDto.createTokenResponseRecordDto(accessToken,
+				refreshToken, jwtService.getAccessTtlSeconds(), "Bearer", modelMapper.map(user, UserDto.class));
+
+		return ResponseEntity.ok(tokenResponseRecordDto);
 
 	}
 
