@@ -1,5 +1,6 @@
 package com.project.auth.app.backend.security;
 
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,7 +18,7 @@ public class CustomUserDetailService implements UserDetailsService{
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		// TODO Auto-generated method stub
-		return userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Invalid Email/Username"));
+		return userRepository.findByEmail(username).orElseThrow(() -> new BadCredentialsException("Invalid Email/Username"));
 	}
 
 }

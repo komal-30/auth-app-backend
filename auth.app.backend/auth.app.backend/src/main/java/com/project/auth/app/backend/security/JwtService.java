@@ -20,8 +20,10 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 
 @Service
+@Getter
 public class JwtService {
 
 	// Key used to signing and verifying tokens
@@ -52,8 +54,6 @@ public class JwtService {
 	// JTI - A unique identifier for the JWT. Useful to revoke tokens or prevent
 	// replay attacks.
 
-
-
 	// Generate new JWT Access Token
 	public String generateAccessToken(User user) {
 		// Access token should contain - JWT ID, Subject,Issuer,Issued
@@ -64,7 +64,7 @@ public class JwtService {
 		return Jwts.builder().id(UUID.randomUUID().toString()).subject(user.getId().toString()).issuer(issuer)
 				.issuedAt(Date.from(now)).expiration(Date.from(now.plusSeconds(accessTtlSeconds)))
 				.claims(Map.of("email", user.getEmail(), "roles", roles, "typ", "access"))
-//		.signWith(key,SignatureAlgorithm.HS512)
+				.signWith(key,Jwts.SIG.HS512)
 				.compact();
 	}
 
@@ -75,6 +75,7 @@ public class JwtService {
 		return Jwts.builder().id(jti).subject(user.getId().toString()).issuer(issuer).issuedAt(Date.from(now))
 				.expiration(Date.from(now.plusSeconds(refreshTtlSeconds))).claims(Map.of("typ", "refresh"))
 //		.signWith(key,SignatureAlgorithm.HS512)
+				.signWith(key,Jwts.SIG.HS512)
 				.compact();
 
 	}
@@ -106,5 +107,7 @@ public class JwtService {
 	public String getJti(String token) {
 		return parse(token).getPayload().getId();
 	}
+
+
 
 }
