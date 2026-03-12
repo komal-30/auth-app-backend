@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -33,6 +34,10 @@ public class Oauth2SuccessHandler implements AuthenticationSuccessHandler {
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final JwtService jwtService;
 	private final CookieService cookieService;
+
+	  @Value("${app.auth.frontend.success-redirect}")
+	    private String frontEndSuccessUrl;
+
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -63,6 +68,20 @@ public class Oauth2SuccessHandler implements AuthenticationSuccessHandler {
 			user = userRepository.findByEmail(email).orElseGet(() -> userRepository.save(newUser));
 		}
 
+		case "github" -> {
+			String name = oAuth2User.getAttributes().getOrDefault("login", "").toString();
+			String email = (String) oAuth2User.getAttributes().get("email");
+			if (email == null) {
+				email = name + "@github.com";
+			}
+
+			User newUser = User.builder().email(email).name(name).enable(true).provider(Provider.GITHUB)
+					// TODO : Add provider ID : .providerId(googleId)
+					.build();
+
+			user = userRepository.findByEmail(email).orElseGet(() -> userRepository.save(newUser));
+		}
+
 		default -> {
 			throw new RuntimeException("Invalid registration id");
 		}
@@ -79,7 +98,7 @@ public class Oauth2SuccessHandler implements AuthenticationSuccessHandler {
 		String refreshToken = jwtService.generateRefreshToken(user, refreshTokenOb.getJti());
 		cookieService.attachRefreshCookie(response, refreshToken, (int) jwtService.getRefreshTtlSeconds());
 //      response.getWriter().write("Login successful");
-//		response.sendRedirect(frontEndSuccessUrl);
+		response.sendRedirect(frontEndSuccessUrl);
 
 	}
 
