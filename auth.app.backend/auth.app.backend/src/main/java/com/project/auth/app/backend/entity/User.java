@@ -26,6 +26,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -33,6 +34,7 @@ import lombok.NoArgsConstructor;
 @Entity(name = "user")
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User  implements UserDetails{
 
 	@Id
@@ -84,6 +86,7 @@ public class User  implements UserDetails{
 		// TODO Auto-generated method stub
 		return this.email;
 	}
+
 
 
 }

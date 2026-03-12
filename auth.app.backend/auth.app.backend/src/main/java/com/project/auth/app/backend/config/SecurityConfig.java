@@ -8,6 +8,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,6 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.project.auth.app.backend.security.JwtAuthenticationFilter;
+import com.project.auth.app.backend.security.Oauth2SuccessHandler;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +27,8 @@ public class SecurityConfig {
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final UserDetailsService userDetailsService; // ← inject your new impl
 	private final PasswordEncoder passwordEncoder; // ← inject from ProjectConfig
+	private final Oauth2SuccessHandler oauth2SuccessHandler; // ← inject from ProjectConfig
+
 
 	@Bean
 	public AuthenticationProvider authenticationProvider() {
@@ -38,8 +42,12 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf(csrf -> csrf.disable()).cors(Customizer.withDefaults())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/register", "/api/v1/auth/login","/api/v1/auth/refresh","/api/v1/auth/logout")
-						.permitAll().anyRequest().authenticated())
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/register", "/api/v1/auth/login",
+						"/api/v1/auth/refresh", "/api/v1/auth/logout").permitAll().anyRequest().authenticated())
+
+				//Oauth Login
+				.oauth2Login(oauth2 -> oauth2.successHandler(oauth2SuccessHandler).failureHandler(null)).logout(AbstractHttpConfigurer::disable)
+
 				.authenticationProvider(authenticationProvider()) // ← wire it in
 				.exceptionHandling(Customizer.withDefaults())
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
